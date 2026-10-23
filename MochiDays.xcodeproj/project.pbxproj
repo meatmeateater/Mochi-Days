@@ -15,7 +15,18 @@
 		A10000062B00000100000001 /* ActionButtonView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000062B00000100000001 /* ActionButtonView.swift */; };
 		A10000072B00000100000001 /* AppTheme.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000072B00000100000001 /* AppTheme.swift */; };
 		A10000082B00000100000001 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A20000082B00000100000001 /* Assets.xcassets */; };
+		A10000092B00000100000001 /* MochiDaysTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000092B00000100000001 /* MochiDaysTests.swift */; };
 /* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		AB0000012B00000100000001 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = A90000012B00000100000001 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = A50000012B00000100000001;
+			remoteInfo = MochiDays;
+		};
+/* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
 		A20000002B00000100000001 /* MochiDays.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = MochiDays.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -27,10 +38,19 @@
 		A20000062B00000100000001 /* ActionButtonView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActionButtonView.swift; sourceTree = "<group>"; };
 		A20000072B00000100000001 /* AppTheme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppTheme.swift; sourceTree = "<group>"; };
 		A20000082B00000100000001 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		A20000092B00000100000001 /* MochiDaysTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MochiDaysTests.swift; sourceTree = "<group>"; };
+		A200000A2B00000100000001 /* MochiDaysTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = MochiDaysTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
 		A30000012B00000100000001 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		A30000022B00000100000001 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -44,6 +64,7 @@
 			isa = PBXGroup;
 			children = (
 				A40000012B00000100000001 /* MochiDays */,
+				A40000062B00000100000001 /* MochiDaysTests */,
 				A40000052B00000100000001 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -91,8 +112,17 @@
 			isa = PBXGroup;
 			children = (
 				A20000002B00000100000001 /* MochiDays.app */,
+				A200000A2B00000100000001 /* MochiDaysTests.xctest */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		A40000062B00000100000001 /* MochiDaysTests */ = {
+			isa = PBXGroup;
+			children = (
+				A20000092B00000100000001 /* MochiDaysTests.swift */,
+			);
+			path = MochiDaysTests;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -115,6 +145,24 @@
 			productReference = A20000002B00000100000001 /* MochiDays.app */;
 			productType = "com.apple.product-type.application";
 		};
+		A50000022B00000100000001 /* MochiDaysTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = A80000032B00000100000001 /* Build configuration list for PBXNativeTarget "MochiDaysTests" */;
+			buildPhases = (
+				A60000022B00000100000001 /* Sources */,
+				A30000022B00000100000001 /* Frameworks */,
+				A70000022B00000100000001 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				AC0000012B00000100000001 /* PBXTargetDependency */,
+			);
+			name = MochiDaysTests;
+			productName = MochiDaysTests;
+			productReference = A200000A2B00000100000001 /* MochiDaysTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -127,6 +175,10 @@
 				TargetAttributes = {
 					A50000012B00000100000001 = {
 						CreatedOnToolsVersion = 16.0;
+					};
+					A50000022B00000100000001 = {
+						CreatedOnToolsVersion = 16.0;
+						TestTargetID = A50000012B00000100000001;
 					};
 				};
 			};
@@ -145,6 +197,7 @@
 			projectRoot = "";
 			targets = (
 				A50000012B00000100000001 /* MochiDays */,
+				A50000022B00000100000001 /* MochiDaysTests */,
 			);
 		};
 /* End PBXProject section */
@@ -155,6 +208,13 @@
 			buildActionMask = 2147483647;
 			files = (
 				A10000082B00000100000001 /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		A70000022B00000100000001 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -175,7 +235,23 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		A60000022B00000100000001 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A10000092B00000100000001 /* MochiDaysTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		AC0000012B00000100000001 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = A50000012B00000100000001 /* MochiDays */;
+			targetProxy = AB0000012B00000100000001 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
 		AA0000012B00000100000001 /* Debug */ = {
@@ -361,6 +437,42 @@
 			};
 			name = Release;
 		};
+		AA0000052B00000100000001 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.mochi.MochiDaysTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 1;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/MochiDays.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/MochiDays";
+			};
+			name = Debug;
+		};
+		AA0000062B00000100000001 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.mochi.MochiDaysTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 1;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/MochiDays.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/MochiDays";
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -378,6 +490,15 @@
 			buildConfigurations = (
 				AA0000032B00000100000001 /* Debug */,
 				AA0000042B00000100000001 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		A80000032B00000100000001 /* Build configuration list for PBXNativeTarget "MochiDaysTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				AA0000052B00000100000001 /* Debug */,
+				AA0000062B00000100000001 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

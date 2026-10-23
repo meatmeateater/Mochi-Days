@@ -31,28 +31,14 @@ struct ContentView: View {
         )
     }
 
-    /// 根據當前優先狀態推導狀態提示文字（供條件渲染與無障礙描述使用）
+    /// 根據當前優先狀態推導狀態提示文字（與 petImageName 遵循完全一致的優先順序）
     private var currentStatusHint: String {
-        if fullness <= 20 {
-            return "肚子咕嚕叫"
-        } else if energy <= 20 {
-            return "眼皮好沉重"
-        } else if happiness <= 20 {
-            return "需要你陪陪"
-        } else {
-            switch lastAction {
-            case .idle:
-                return "悠閒放空中"
-            case .eating:
-                return "津津有味享用了飯糰"
-            case .playing:
-                return "開心地蹦蹦跳跳"
-            case .sleeping:
-                return "香甜進入夢鄉"
-            case .petting:
-                return "被摸摸覺得好幸福"
-            }
-        }
+        Self.resolveStatusHint(
+            fullness: fullness,
+            energy: energy,
+            happiness: happiness,
+            lastAction: lastAction
+        )
     }
 
     private let buttonGridColumns: [GridItem] = [
@@ -70,27 +56,35 @@ struct ContentView: View {
 
             backgroundDecoration
 
-            VStack(spacing: 12) {
-                headerSection
+            GeometryReader { viewport in
+                ScrollView(.vertical, showsIndicators: false) {
+                    VStack(spacing: 12) {
+                        headerSection
 
-                statusCardSection
+                        statusCardSection
 
-                PetView(
-                    imageName: petImageName,
-                    lastAction: lastAction,
-                    interactionCount: interactionCount,
-                    statusHint: currentStatusHint
-                )
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                        PetView(
+                            imageName: petImageName,
+                            lastAction: lastAction,
+                            interactionCount: interactionCount,
+                            statusHint: currentStatusHint
+                        )
+                        .frame(maxWidth: .infinity, minHeight: 165, maxHeight: .infinity)
 
-                dialogueBubbleSection
+                        dialogueBubbleSection
 
-                actionButtonsSection
+                        actionButtonsSection
+                    }
+                    .padding(.horizontal, 20)
+                    .padding(.top, 6)
+                    .padding(.bottom, 10)
+                    .frame(minHeight: viewport.size.height)
+                }
+                .scrollBounceBehavior(.basedOnSize)
             }
-            .padding(.horizontal, 20)
-            .padding(.top, 6)
-            .padding(.bottom, 10)
         }
+        // 限制最大動態字級上限，避免極端放大字體時造成排版重疊，同時搭配 ScrollView 確保小螢幕完整顯示
+        .dynamicTypeSize(...DynamicTypeSize.xxxLarge)
         // 維持療癒亮色系設計配色，不因系統 Dark Mode 破壞畫面
         .preferredColorScheme(.light)
         .confirmationDialog(
@@ -138,10 +132,13 @@ struct ContentView: View {
                     Text("Mochi Days")
                         .font(.system(size: 26, weight: .heavy, design: .rounded))
                         .foregroundStyle(AppTheme.textBrown)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.85)
 
                     Text("麻糬日常")
                         .font(.system(size: 12, weight: .bold, design: .rounded))
                         .foregroundStyle(AppTheme.textBrown)
+                        .lineLimit(1)
                         .padding(.horizontal, 8)
                         .padding(.vertical, 3)
                         .background(
@@ -153,6 +150,8 @@ struct ContentView: View {
                 Text("和麻糬一起度過的每一天")
                     .font(.system(size: 13, weight: .medium, design: .rounded))
                     .foregroundStyle(AppTheme.subtleTextBrown)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.85)
             }
 
             Spacer()
@@ -196,6 +195,7 @@ struct ContentView: View {
                     Text("麻糬")
                         .font(.system(size: 18, weight: .bold, design: .rounded))
                         .foregroundStyle(AppTheme.textBrown)
+                        .lineLimit(1)
                 }
 
                 Spacer()
@@ -209,6 +209,7 @@ struct ContentView: View {
                         .font(.system(size: 13, weight: .bold, design: .rounded))
                         .monospacedDigit()
                         .foregroundStyle(AppTheme.textBrown)
+                        .lineLimit(1)
                         .contentTransition(.numericText(value: Double(interactionCount)))
                 }
                 .padding(.horizontal, 11)
@@ -517,6 +518,35 @@ struct ContentView: View {
             return "mochi_sad"
         } else {
             return lastAction.defaultImageName
+        }
+    }
+
+    /// 依照與圖片完全一致的優先順序決定狀態提示文字
+    static func resolveStatusHint(
+        fullness: Int,
+        energy: Int,
+        happiness: Int,
+        lastAction: PetAction
+    ) -> String {
+        if fullness <= 20 {
+            return "肚子咕嚕叫"
+        } else if energy <= 20 {
+            return "眼皮好沉重"
+        } else if happiness <= 20 {
+            return "需要你陪陪"
+        } else {
+            switch lastAction {
+            case .idle:
+                return "悠閒放空中"
+            case .eating:
+                return "津津有味享用了飯糰"
+            case .playing:
+                return "開心地蹦蹦跳跳"
+            case .sleeping:
+                return "香甜進入夢鄉"
+            case .petting:
+                return "被摸摸覺得好幸福"
+            }
         }
     }
 }

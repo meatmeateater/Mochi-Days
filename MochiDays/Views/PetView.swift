@@ -1,8 +1,6 @@
 import SwiftUI
 #if canImport(UIKit)
 import UIKit
-#elseif canImport(AppKit)
-import AppKit
 #endif
 
 /// 寵物主視覺區：負責顯示麻糬圖片、狀態特效與原生動畫
@@ -24,24 +22,28 @@ struct PetView: View {
     @State private var showReactionBadge: Bool = false
     @State private var reactionTask: Task<Void, Never>?
 
-    /// 是否處於睡眠視覺狀態
+    /// 是否處於睡眠視覺狀態（僅以實際顯示圖片為準，避免飢餓時按睡覺出現睡眠特效）
     private var isSleepingState: Bool {
-        imageName == "mochi_sleeping" || lastAction == .sleeping
+        imageName == "mochi_sleeping"
     }
 
-    /// 對應當前互動的可愛小圖示
+    /// 對應當前實際顯示狀態的可愛小圖示（與角色圖片優先順序保持一致）
     private var reactionEmoji: String {
-        switch lastAction {
-        case .idle:
-            return "✨"
-        case .eating:
-            return "🍙"
-        case .playing:
-            return "🎵"
-        case .sleeping:
+        switch imageName {
+        case "mochi_hungry":
+            return "🍽️"
+        case "mochi_sleeping":
             return "💤"
-        case .petting:
+        case "mochi_sad":
+            return "💧"
+        case "mochi_eating":
+            return "🍙"
+        case "mochi_playing":
+            return "🎵"
+        case "mochi_petted":
             return "💕"
+        default:
+            return "✨"
         }
     }
 
@@ -129,6 +131,7 @@ struct PetView: View {
                             .font(.system(size: 12, weight: .semibold, design: .rounded))
                             .foregroundStyle(AppTheme.textBrown)
                             .lineLimit(1)
+                            .minimumScaleFactor(0.85)
                     }
                     .padding(.horizontal, 12)
                     .padding(.vertical, 4)
@@ -147,22 +150,33 @@ struct PetView: View {
             value: imageName
         )
         .onAppear {
-            startAmbientAnimationIfNeeded()
+            restartAmbientAnimation()
+        }
+        .onDisappear {
+            reactionTask?.cancel()
+            reactionTask = nil
+        }
+        .onChange(of: isSleepingState) { _, _ in
+            restartAmbientAnimation()
         }
         .onChange(of: reduceMotion) { _, newValue in
             if newValue {
+                reactionTask?.cancel()
                 isAmbientActive = false
-                resetTransientTransforms()
+                resetTransientTransforms(animated: false)
             } else {
-                startAmbientAnimationIfNeeded()
+                restartAmbientAnimation()
             }
         }
         .onChange(of: interactionCount) { oldCount, newCount in
             guard newCount > oldCount else {
-                // 重置時恢復初始視覺狀態
+                // 重置時清除前一次互動留下的動畫與氣泡狀態
                 reactionTask?.cancel()
-                showReactionBadge = false
-                resetTransientTransforms()
+                reactionTask = nil
+                withAnimation(reduceMotion ? nil : .easeOut(duration: 0.2)) {
+                    showReactionBadge = false
+                }
+                resetTransientTransforms(animated: !reduceMotion)
                 return
             }
             triggerActionAnimation(for: lastAction)
@@ -172,8 +186,7 @@ struct PetView: View {
     // MARK: - Pet Image or Fallback Placeholder
     @ViewBuilder
     private func petGraphic(size: CGFloat) -> some View {
-        #if canImport(UIKit)
-        if UIImage(named: imageName) != nil {
+        if hasImageAsset(named: imageName) {
             Image(imageName)
                 .resizable()
                 .scaledToFit()
@@ -182,16 +195,13 @@ struct PetView: View {
         } else {
             placeholderGraphic(size: size)
         }
-        #elseif canImport(AppKit)
-        if let nsImage = NSImage(named: imageName) ?? NSImage(contentsOfFile: "MochiDays/Assets.xcassets/\(imageName).imageset/\(imageName).png") {
-            Image(nsImage: nsImage)
-                .resizable()
-                .scaledToFit()
-                .frame(width: size, height: size)
-                .accessibilityLabel("麻糬目前狀態圖片：\(statusHint)")
-        } else {
-            placeholderGraphic(size: size)
-        }
+    }
+
+    private func hasImageAsset(named name: String) -> Bool {
+        #if canImport(UIKit)
+        return UIImage(named: name) != nil
+        #else
+        return true
         #endif
     }
 
@@ -236,7 +246,14 @@ struct PetView: View {
 
     // MARK: - Animation Helpers
 
-    private func startAmbientAnimationIfNeeded() {
+    /// 啟動或切換待機浮動／睡眠呼吸動畫，切換前先無動畫歸零避免狀態殘留
+    private func restartAmbientAnimation() {
+        var resetTransaction = Transaction()
+        resetTransaction.disablesAnimations = true
+        withTransaction(resetTransaction) {
+            isAmbientActive = false
+        }
+
         guard !reduceMotion else { return }
         withAnimation(
             .easeInOut(duration: 2.0)
@@ -246,13 +263,25 @@ struct PetView: View {
         }
     }
 
-    private func resetTransientTransforms() {
-        feedScale = 1.0
-        playBounceY = 0.0
-        petRotation = 0.0
+    private func resetTransientTransforms(animated: Bool) {
+        if animated {
+            withAnimation(.spring(response: 0.24, dampingFraction: 0.75)) {
+                feedScale = 1.0
+                playBounceY = 0.0
+                petRotation = 0.0
+            }
+        } else {
+            var transaction = Transaction()
+            transaction.disablesAnimations = true
+            withTransaction(transaction) {
+                feedScale = 1.0
+                playBounceY = 0.0
+                petRotation = 0.0
+            }
+        }
     }
 
-    /// 根據使用者點擊的互動類型執行非阻塞的原生動畫
+    /// 根據使用者點擊的互動類型與當前實際顯示狀態執行非阻塞的原生動畫
     private func triggerActionAnimation(for action: PetAction) {
         reactionTask?.cancel()
 
@@ -261,65 +290,77 @@ struct PetView: View {
         }
 
         reactionTask = Task { @MainActor in
-            resetTransientTransforms()
+            resetTransientTransforms(animated: false)
             withAnimation(.spring(response: 0.28, dampingFraction: 0.7)) {
                 showReactionBadge = true
             }
 
-            switch action {
-            case .eating:
-                // 2. 點擊餵食後的短暫縮放效果
-                withAnimation(.spring(response: 0.22, dampingFraction: 0.5)) {
-                    feedScale = 1.13
-                }
-                try? await Task.sleep(for: .milliseconds(180))
-                guard !Task.isCancelled else { return }
-                withAnimation(.spring(response: 0.35, dampingFraction: 0.65)) {
-                    feedScale = 1.0
-                }
-
-            case .playing:
-                // 3. 點擊玩耍後的彈跳效果
-                withAnimation(.spring(response: 0.20, dampingFraction: 0.48)) {
-                    playBounceY = -18
-                    feedScale = 1.06
-                }
-                try? await Task.sleep(for: .milliseconds(170))
-                guard !Task.isCancelled else { return }
-                withAnimation(.spring(response: 0.38, dampingFraction: 0.52)) {
-                    playBounceY = 0
-                    feedScale = 1.0
-                }
-
-            case .petting:
-                // 4. 點擊摸摸後的左右擺動
-                withAnimation(.easeInOut(duration: 0.13)) {
-                    petRotation = -9
-                }
-                try? await Task.sleep(for: .milliseconds(130))
-                guard !Task.isCancelled else { return }
-                withAnimation(.easeInOut(duration: 0.15)) {
-                    petRotation = 9
-                }
-                try? await Task.sleep(for: .milliseconds(150))
-                guard !Task.isCancelled else { return }
-                withAnimation(.spring(response: 0.30, dampingFraction: 0.6)) {
-                    petRotation = 0
-                }
-
-            case .sleeping:
-                // 5. 睡覺時配合柔和呼吸效果做輕微下沉放鬆
-                withAnimation(.easeInOut(duration: 0.35)) {
+            // 若目前實際顯示為睡眠圖片（例如疲倦時按下摸摸，或正常睡覺），統一使用柔和放鬆動畫以維持視覺一致
+            if isSleepingState {
+                withAnimation(.easeInOut(duration: 0.32)) {
                     feedScale = 0.96
                 }
-                try? await Task.sleep(for: .milliseconds(320))
+                try? await Task.sleep(for: .milliseconds(300))
                 guard !Task.isCancelled else { return }
-                withAnimation(.easeInOut(duration: 0.4)) {
+                withAnimation(.easeInOut(duration: 0.36)) {
                     feedScale = 1.0
                 }
+            } else {
+                switch action {
+                case .eating:
+                    // 點擊餵食後的短暫縮放效果
+                    withAnimation(.spring(response: 0.22, dampingFraction: 0.5)) {
+                        feedScale = 1.13
+                    }
+                    try? await Task.sleep(for: .milliseconds(180))
+                    guard !Task.isCancelled else { return }
+                    withAnimation(.spring(response: 0.35, dampingFraction: 0.65)) {
+                        feedScale = 1.0
+                    }
 
-            case .idle:
-                resetTransientTransforms()
+                case .playing:
+                    // 點擊玩耍後的彈跳效果
+                    withAnimation(.spring(response: 0.20, dampingFraction: 0.48)) {
+                        playBounceY = -18
+                        feedScale = 1.06
+                    }
+                    try? await Task.sleep(for: .milliseconds(170))
+                    guard !Task.isCancelled else { return }
+                    withAnimation(.spring(response: 0.38, dampingFraction: 0.52)) {
+                        playBounceY = 0
+                        feedScale = 1.0
+                    }
+
+                case .petting:
+                    // 點擊摸摸後的左右擺動
+                    withAnimation(.easeInOut(duration: 0.13)) {
+                        petRotation = -9
+                    }
+                    try? await Task.sleep(for: .milliseconds(130))
+                    guard !Task.isCancelled else { return }
+                    withAnimation(.easeInOut(duration: 0.15)) {
+                        petRotation = 9
+                    }
+                    try? await Task.sleep(for: .milliseconds(150))
+                    guard !Task.isCancelled else { return }
+                    withAnimation(.spring(response: 0.30, dampingFraction: 0.6)) {
+                        petRotation = 0
+                    }
+
+                case .sleeping:
+                    // 當飢餓時按下睡覺（顯示 mochi_hungry），做輕微飢餓縮放提示而非睡眠呼吸
+                    withAnimation(.spring(response: 0.24, dampingFraction: 0.6)) {
+                        feedScale = 0.95
+                    }
+                    try? await Task.sleep(for: .milliseconds(220))
+                    guard !Task.isCancelled else { return }
+                    withAnimation(.spring(response: 0.32, dampingFraction: 0.7)) {
+                        feedScale = 1.0
+                    }
+
+                case .idle:
+                    resetTransientTransforms(animated: false)
+                }
             }
 
             try? await Task.sleep(for: .milliseconds(900))
